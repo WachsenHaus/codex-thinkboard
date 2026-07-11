@@ -1,0 +1,20 @@
+{
+  "name": "codex-thinkboard",
+  "interface": {
+    "displayName": "Codex Thinkboard"
+  },
+  "plugins": [
+    {
+      "name": "codex-thinkboard",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-thinkboard"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

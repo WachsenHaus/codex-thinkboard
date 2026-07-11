@@ -1,0 +1,49 @@
+name: Feature proposal
+description: Propose a scoped improvement to Thinkboard.
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What becomes clearer, safer, or easier for the user?
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the result rather than a specific implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How do you handle this today?
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Primary surface
+      options:
+        - Conversation skill
+        - Local board
+        - MCP tools
+        - Embedded UI
+        - Repository or documentation
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This proposal preserves local-first privacy or explains why it cannot.
+          required: true
+        - label: I considered whether the same outcome can be achieved with a smaller change.
+          required: true

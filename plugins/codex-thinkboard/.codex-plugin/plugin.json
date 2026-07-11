@@ -1,0 +1,30 @@
+{
+  "name": "codex-thinkboard",
+  "version": "0.1.0",
+  "description": "Turn fuzzy intent into a clear map of wants, unknowns, evidence, and assumptions.",
+  "author": {
+    "name": "WachsenHaus",
+    "url": "https://github.com/WachsenHaus"
+  },
+  "homepage": "https://github.com/WachsenHaus/codex-thinkboard",
+  "repository": "https://github.com/WachsenHaus/codex-thinkboard",
+  "license": "Apache-2.0",
+  "keywords": ["clarity", "codex", "sensemaking", "visual-thinking"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Thinkboard",
+    "shortDescription": "Clarify what you want and what you do not know.",
+    "longDescription": "A friendly, high-reasoning dialogue that turns fuzzy intent into a living board of wants, unknowns, evidence, and assumptions.",
+    "developerName": "WachsenHaus",
+    "category": "Productivity",
+    "capabilities": ["Interactive"],
+    "websiteURL": "https://github.com/WachsenHaus/codex-thinkboard",
+    "privacyPolicyURL": "https://github.com/WachsenHaus/codex-thinkboard/blob/main/PRIVACY.md",
+    "defaultPrompt": [
+      "Help me clarify a fuzzy idea with Thinkboard.",
+      "Map what I want and what I still need to learn.",
+      "Challenge the assumptions blocking my next decision."
+    ],
+    "brandColor": "#B45309"
+  }
+}

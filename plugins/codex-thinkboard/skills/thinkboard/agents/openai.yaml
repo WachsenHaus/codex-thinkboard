@@ -1,0 +1,4 @@
+interface:
+  display_name: "Thinkboard"
+  short_description: "Clarify wants, unknowns, and next questions"
+  default_prompt: "Use $thinkboard to clarify what I want and what I still need to discover."

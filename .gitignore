@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example
+
+# Local Thinkboard sessions may contain private thoughts.
+.thinkboard/
+*.thinkboard.json
