@@ -1,6 +1,6 @@
 {
   "name": "codex-thinkboard",
-  "version": "0.1.0",
+  "version": "0.2.0+codex.20260711154136",
   "description": "Turn fuzzy intent into a clear map of wants, unknowns, evidence, and assumptions.",
   "author": {
     "name": "WachsenHaus",
@@ -9,15 +9,23 @@
   "homepage": "https://github.com/WachsenHaus/codex-thinkboard",
   "repository": "https://github.com/WachsenHaus/codex-thinkboard",
   "license": "Apache-2.0",
-  "keywords": ["clarity", "codex", "sensemaking", "visual-thinking"],
+  "keywords": [
+    "clarity",
+    "codex",
+    "sensemaking",
+    "visual-thinking"
+  ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Thinkboard",
     "shortDescription": "Clarify what you want and what you do not know.",
     "longDescription": "A friendly, high-reasoning dialogue that turns fuzzy intent into a living board of wants, unknowns, evidence, and assumptions.",
     "developerName": "WachsenHaus",
     "category": "Productivity",
-    "capabilities": ["Interactive"],
+    "capabilities": [
+      "Interactive"
+    ],
     "websiteURL": "https://github.com/WachsenHaus/codex-thinkboard",
     "privacyPolicyURL": "https://github.com/WachsenHaus/codex-thinkboard/blob/main/PRIVACY.md",
     "defaultPrompt": [

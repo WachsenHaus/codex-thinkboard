@@ -2,12 +2,12 @@
 
 ## The product is guided externalization
 
-Thinkboard should not choose between conversation and canvas. Conversation directs attention; the board externalizes working memory; direct manipulation gives interpretation back to the user.
+Thinkboard should not choose between conversation and canvas. Conversation directs attention, the board externalizes working memory, and user corrections in Codex remain authoritative. The web canvas is a semantic read-only projection; visual layout remains locally adjustable.
 
 The default balance is:
 
-- **60% guided dialogue:** one high-leverage question at a time.
-- **30% direct manipulation:** rename, move, connect, merge, or reject cards.
+- **70% guided dialogue:** one high-leverage question at a time, using native quick choices when useful.
+- **20% visual inspection and correction:** understand the current board, then correct meaning through natural language in Codex.
 - **10% detective-board atmosphere:** spotlight, pins, red strings, and case language.
 
 Roleplay is decoration, not ontology. A user should understand the board without knowing the theme.
@@ -27,8 +27,8 @@ This is a product inference from established cognitive and HCI findings, not a c
 2. **Pin:** add or change only the cards justified by the user's words.
 3. **Spotlight:** select the ambiguity with the highest decision impact.
 4. **Ask:** use one question that can change the graph.
-5. **Correct:** let the user edit the model's interpretation.
-6. **Connect:** type the relationship instead of drawing a meaningless line.
+5. **Correct:** let the user correct the model's interpretation through Codex dialogue.
+6. **Connect:** Codex writes typed relationships; the user corrects their meaning in natural language instead of drawing lines.
 7. **Close:** confirm outcome, non-goals, ranked unknowns, and next action.
 
 ## Visual semantics
@@ -44,15 +44,19 @@ This is a product inference from established cognitive and HCI findings, not a c
 
 The canonical state is structured board JSON. The web canvas is a projection of that state.
 
-React Flow is the planned semantic graph engine because it supports custom React nodes and typed edges under an MIT license. The detective-board feel will come from CSS/SVG styling rather than making a freehand drawing file the source of truth. See the [React Flow repository](https://github.com/xyflow/xyflow) and [layout guide](https://reactflow.dev/learn/layouting/layouting).
+React Flow is the semantic graph engine because it supports custom React nodes and typed edges under an MIT license. The detective-board feel comes from CSS/SVG styling rather than making a freehand drawing file the source of truth. See the [React Flow repository](https://github.com/xyflow/xyflow) and [layout guide](https://reactflow.dev/learn/layouting/layouting).
 
-The first visual release is local-first:
+The first visual release is local-first and runs on loopback only:
 
 ```text
 Thinkboard skill -> local MCP tools -> board JSON -> local React Flow web UI
 ```
 
+The bundled stdio MCP process owns board persistence and also serves the static canvas at `127.0.0.1:43127`. The canvas reads the canonical board through loopback-only HTTP endpoints. Card positions remain a local visual preference; semantic cards and typed edges can change only through validated MCP updates from Codex.
+
 An embedded Apps SDK surface may follow, but public OpenAI documentation currently describes custom UI as ChatGPT UI, so standalone structured-text and local-web fallbacks remain required. See [Build plugins](https://learn.chatgpt.com/docs/build-plugins) and [Build an app](https://learn.chatgpt.com/docs/build-app).
+
+The planned real-time Codex conversation client, quick-choice questions, automatic relationship management, and remote CLI handoff are specified in [Thinkboard real-time conversation development](./REALTIME_CONVERSATION.md).
 
 ## Deliberate non-goals for the first release
 

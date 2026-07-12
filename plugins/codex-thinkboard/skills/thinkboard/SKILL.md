@@ -16,6 +16,17 @@ Guide the user through a living case board. Treat the conversation as guided ext
 5. Surface contradictions gently. Ask for priority, conditions, or exceptions instead of declaring the user inconsistent.
 6. Close only when the user can confirm a concrete outcome, important non-goals, ranked unknowns, and one next action or experiment.
 
+## MCP synchronization
+
+When the bundled Thinkboard MCP tools are present:
+
+1. Call `thinkboard_get_board` before resuming an existing case.
+2. Call `thinkboard_update_board` after every answer that changes a card, relationship, priority, or phase.
+3. Call `thinkboard_open_board` near the start and share its loopback-only canvas URL with the user.
+4. Treat the MCP board as canonical. The web canvas is a semantic read-only projection; user corrections arrive through Codex dialogue and must be written through MCP.
+
+Do not invent tool success. If a tool reports that the canvas is unavailable, continue with the Markdown fallback and state the limitation plainly.
+
 Read [references/board-model.md](references/board-model.md) before creating or updating a structured board.
 
 ## Question discipline
@@ -30,12 +41,12 @@ Read [references/board-model.md](references/board-model.md) before creating or u
 ## Meaning and ownership
 
 - Never promote an inference to a fact. Put it on an `assumption` card until the user confirms it.
-- Let the user rename, move, merge, or reject any card. Treat those edits as corrections to the model's interpretation.
+- Let the user correct, merge, or reject any card through natural-language dialogue. Treat those corrections as authoritative and update the board through MCP. Visual card movement changes layout only.
 - Preserve useful ambiguity when the user genuinely has not decided. The goal is clarity about uncertainty, not forced certainty.
 - Do not turn the experience into therapy, diagnosis, or persuasion. For sensitive domains, clarify the decision without claiming professional authority.
 
 ## Board availability
 
-When Thinkboard MCP tools are present, keep the canonical board synchronized through those tools. When no board UI or MCP tool is available, render the Markdown fallback from the board model and continue the same loop.
+When Thinkboard MCP tools are present, keep the canonical board synchronized through those tools. The bundled server exposes a loopback-only read-only canvas and stores the board in the user's local Codex data directory. Keep questions, quick choices, corrections, and tool approvals in the native Codex conversation. When no board UI or MCP tool is available, render the Markdown fallback from the board model and continue the same loop.
 
 Apply the strongest invariant throughout: every unknown must connect to a want it can block, change, or resolve. Remove interesting but irrelevant unknowns from the active board.

@@ -9,7 +9,7 @@
 
 Thinkboard is an open-source Codex plugin for guided sensemaking. It uses a friendly question loop to separate desired outcomes, important unknowns, evidence, and assumptions.
 
-**Status:** early alpha. The conversational skill and board contract are available now. The local interactive canvas is the next milestone.
+**Status:** early alpha. The conversation skill, local MCP session storage, and React Flow canvas now work as one thin end-to-end slice.
 
 ## Why this is not another mind map
 
@@ -56,8 +56,8 @@ Natural prompts such as `thinkboard`, `씽크보드 시작`, or “help me figur
 
 Thinkboard is being designed local-first because a board may contain private goals, uncertainty, and unfinished thoughts.
 
-- The current skill sends data nowhere beyond the Codex environment the user already chose.
-- Future local board sessions will live in a user-controlled data directory.
+- The skill and local MCP do not send the board outside the Codex environment the user already chose.
+- Board state is stored at `~/.codex/thinkboard/board.json` by default.
 - Session files are ignored by Git by default.
 - Telemetry, accounts, collaboration, and hosted sync are not part of the first release.
 
@@ -69,10 +69,17 @@ Read [PRIVACY.md](PRIVACY.md) before using Thinkboard with sensitive information
 .agents/plugins/marketplace.json       Repository marketplace
 plugins/codex-thinkboard/
   .codex-plugin/plugin.json            Plugin manifest
+  .mcp.json                             Local MCP launch configuration
+  mcp/board.mjs                         Board validation and atomic storage
+  mcp/protocol.mjs                      MCP tools and JSON-RPC handling
+  mcp/web-host.mjs                      Loopback HTTP, SSE, and port takeover
+  mcp/server.mjs                        Process composition and lifecycle
   skills/thinkboard/SKILL.md            Conversation protocol
   skills/thinkboard/references/         Canonical board model
+  web/src/features/board/               Board API, state, services, and UI
+  web/dist/                             Generated static build
 docs/PRODUCT.md                         Product and interaction principles
-scripts/check.mjs                       Zero-dependency repository validation
+scripts/check.mjs                       Structure and 1,000-line source validation
 ```
 
 ## Roadmap
@@ -80,8 +87,8 @@ scripts/check.mjs                       Zero-dependency repository validation
 - [x] Public plugin and marketplace scaffold
 - [x] Thinkboard conversation protocol
 - [x] Canonical board JSON and Markdown fallback
-- [ ] Local MCP server with session storage
-- [ ] React Flow canvas with spotlight and red-string interactions
+- [x] Local MCP server with session storage
+- [x] React Flow canvas with spotlight and red-string interactions
 - [ ] JSON and PNG export
 - [ ] GitHub Pages sample-board demo
 - [ ] Optional embedded Apps SDK UI where the host supports it
@@ -92,12 +99,17 @@ Collaboration, accounts, freehand drawing, and hosted sync are deliberately out 
 
 Requirements: Node.js 22 or newer.
 
+The local canvas defaults to `http://127.0.0.1:43127`. When Codex starts the bundled MCP server, the same process serves the canvas. Override
+`THINKBOARD_WEB_PORT` in `.env` only when that port is unavailable. Thinkboard
+does not reserve or use Vite's common default port `5173`.
+
 ```sh
 npm ci
 npm run check
+npm start
 ```
 
-The check verifies the plugin manifest, marketplace entry, skill frontmatter, and absence of scaffold placeholders. Before release, the plugin must also be installed and exercised with a real Codex client; a standalone validator is not treated as the final source of truth.
+`npm run check` builds the web app, tests board logic, runs an MCP/HTTP integration test, and validates the plugin structure. `npm start` runs the MCP server and local canvas directly during development. Before release, the plugin must also be installed and exercised with a real Codex client; a standalone validator is not treated as the final source of truth.
 
 ## Contributing
 
