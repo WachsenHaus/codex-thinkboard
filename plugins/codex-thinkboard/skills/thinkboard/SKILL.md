@@ -25,6 +25,16 @@ When the bundled Thinkboard MCP tools are present:
 3. Call `thinkboard_open_board` near the start and share its loopback-only canvas URL with the user.
 4. Treat the MCP board as canonical. The web canvas is a semantic read-only projection; user corrections arrive through Codex dialogue and must be written through MCP.
 
+### Automatic organization
+
+- Give each new card a short semantic `topic` and one `stage`: `problem`, `idea`, `decision`, or `action`.
+- Reuse an existing topic when the card serves the same user goal. Create a new topic only when merging would hide a meaningful distinction.
+- Set `topicSource: "ai"` for inferred groups and `topicSource: "user"` when the user names or corrects a group.
+- Never overwrite a `topicSource: "user"` topic unless the user explicitly changes it. User organization has priority over AI regrouping.
+- When the user explicitly changes an existing user-owned topic, include that card ID in `userTopicOverrides` for the update. Omit this field for ordinary AI regrouping.
+- Set `createdAt` to the current ISO 8601 time when creating a card, and preserve it on later updates.
+- Keep stage and topic assignments useful but lightweight. They organize the projection; they do not replace card types or semantic edges.
+
 Do not invent tool success. If a tool reports that the canvas is unavailable, continue with the Markdown fallback and state the limitation plainly.
 
 Read [references/board-model.md](references/board-model.md) before creating or updating a structured board.

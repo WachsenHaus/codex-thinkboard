@@ -7,11 +7,70 @@ import { createServer as createNetServer } from "node:net";
 import readline from "node:readline";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { preserveUserTopics, validateBoard } from "../plugins/codex-thinkboard/mcp/board.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const serverPath = path.join(root, "plugins", "codex-thinkboard", "mcp", "server.mjs");
 
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+test("board validation preserves automatic organization metadata", () => {
+  const board = validateBoard({
+    id: "organized",
+    title: "Organized board",
+    phase: "clarifying",
+    cards: [{
+      id: "want-1",
+      type: "want",
+      text: "Keep groups stable",
+      polarity: "include",
+      status: "confirmed",
+      tags: [],
+      topic: "Board UX",
+      topicSource: "user",
+      stage: "decision",
+      createdAt: "2026-07-13T12:00:00+09:00",
+    }],
+    edges: [],
+  });
+
+  assert.deepEqual(board.cards[0], {
+    id: "want-1",
+    type: "want",
+    text: "Keep groups stable",
+    status: "confirmed",
+    tags: [],
+    topic: "Board UX",
+    topicSource: "user",
+    stage: "decision",
+    createdAt: "2026-07-13T12:00:00+09:00",
+    polarity: "include",
+  });
+  assert.throws(() => validateBoard({
+    ...board,
+    cards: [{ ...board.cards[0], stage: "later" }],
+  }), /stage is invalid/);
+  assert.throws(() => validateBoard({
+    ...board,
+    cards: [{ ...board.cards[0], createdAt: "2026-07-13" }],
+  }), /createdAt is invalid/);
+});
+
+test("user-owned topics survive AI regrouping until explicitly overridden", () => {
+  const current = {
+    cards: [{ id: "want-1", topic: "User topic", topicSource: "user" }],
+  };
+  const next = {
+    cards: [{ id: "want-1", topic: "AI topic", topicSource: "ai" }],
+  };
+
+  assert.deepEqual(preserveUserTopics(current, next).cards[0], {
+    id: "want-1",
+    topic: "User topic",
+    topicSource: "user",
+  });
+  assert.deepEqual(preserveUserTopics(current, next, ["want-1"]).cards[0], next.cards[0]);
+});
 
 async function getFreePort() {
   const server = createNetServer();

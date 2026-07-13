@@ -10,6 +10,8 @@ export type BoardNodeData = Record<string, unknown> & {
 
 export type BoardNode = Node<BoardNodeData, 'boardCard'>;
 export type BoardLayoutMode = 'wide' | 'compact';
+export type BoardViewMode = 'topics' | 'relationships' | 'timeline';
+export type BoardTopicGroup = { topic: string | null; cards: BoardCard[] };
 export type BoardEdgeData = Record<string, unknown> & {
   kind: BoardEdge['kind'];
   isDimmed: boolean;
@@ -152,6 +154,29 @@ export const getCardRelationships = (board: Board, cardId: string | null): Board
   }
   return relationships;
 };
+
+const getCardTopic = (card: BoardCard): string | null => card.topic ?? card.tags[0] ?? null;
+
+export const createTopicGroups = (cards: BoardCard[]): BoardTopicGroup[] => {
+  const groups = new Map<string | null, BoardCard[]>();
+  for (const card of cards) {
+    const topic = getCardTopic(card);
+    const group = groups.get(topic) ?? [];
+    group.push(card);
+    groups.set(topic, group);
+  }
+  return [...groups].map(([topic, groupedCards]) => ({ topic, cards: groupedCards }));
+};
+
+export const createTimeline = (cards: BoardCard[]): BoardCard[] => cards
+  .map((card, index) => ({ card, index, time: card.createdAt ? Date.parse(card.createdAt) : null }))
+  .sort((left, right) => {
+    if (left.time === null && right.time === null) return left.index - right.index;
+    if (left.time === null) return -1;
+    if (right.time === null) return 1;
+    return left.time - right.time || left.index - right.index;
+  })
+  .map(({ card }) => card);
 
 const isLayoutPosition = (value: unknown): value is XYPosition => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;

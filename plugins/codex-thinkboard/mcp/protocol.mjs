@@ -1,4 +1,4 @@
-import { loadBoard, saveBoard } from "./board.mjs";
+import { loadBoard, preserveUserTopics, saveBoard } from "./board.mjs";
 
 const BOARD_SCHEMA = {
   type: "object",
@@ -24,11 +24,18 @@ const TOOLS = [
   {
     name: "thinkboard_update_board",
     title: "Update Thinkboard",
-    description: "Replace the canonical local board after the user confirms or corrects cards and relationships.",
+    description: "Replace the canonical local board after the user confirms or corrects cards, AI topic groups, stages, and relationships.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
-      properties: { board: BOARD_SCHEMA },
+      properties: {
+        board: BOARD_SCHEMA,
+        userTopicOverrides: {
+          type: "array",
+          items: { type: "string", minLength: 1 },
+          description: "Card IDs whose user-owned topics the user explicitly asked to change in this update.",
+        },
+      },
       required: ["board"],
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -63,7 +70,13 @@ export function createMcpProtocol({ boardPath, manifestVersion, getWebStatus, se
     }
 
     if (params?.name === "thinkboard_update_board") {
-      const board = await saveBoard(boardPath, params.arguments?.board);
+      const currentBoard = await loadBoard(boardPath);
+      const nextBoard = preserveUserTopics(
+        currentBoard,
+        params.arguments?.board,
+        params.arguments?.userTopicOverrides,
+      );
+      const board = await saveBoard(boardPath, nextBoard);
       sendResult(id, {
         content: [{ type: "text", text: `Thinkboard updated: ${board.title}` }],
         structuredContent: { board, boardUrl, webAvailable },

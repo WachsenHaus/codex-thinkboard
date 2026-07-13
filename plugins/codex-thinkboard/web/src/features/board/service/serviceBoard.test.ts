@@ -5,6 +5,8 @@ import {
   createEdges,
   createNodes,
   createSelectionHighlight,
+  createTimeline,
+  createTopicGroups,
   createVisibleBoard,
   getCardRelationships,
   parseLayout,
@@ -92,5 +94,30 @@ describe('serviceBoard', () => {
     expect(createVisibleBoard(resolvedBoard, false).cards.map((card) => card.id)).toEqual(['want-1']);
     expect(createVisibleBoard(resolvedBoard, false).edges).toHaveLength(0);
     expect(createVisibleBoard(resolvedBoard, true)).toBe(resolvedBoard);
+  });
+
+  test('groups cards by AI topic and falls back to the first existing tag', () => {
+    const organizedBoard = BoardSchema.parse({
+      ...board,
+      cards: [
+        { ...board.cards[0], topic: 'Launch', topicSource: 'ai', stage: 'decision' },
+        { ...board.cards[1], tags: ['Research'] },
+      ],
+    });
+
+    expect(createTopicGroups(organizedBoard.cards).map((group) => group.topic)).toEqual(['Launch', 'Research']);
+  });
+
+  test('orders timestamped cards chronologically after legacy cards', () => {
+    const organizedBoard = BoardSchema.parse({
+      ...board,
+      cards: [
+        board.cards[0],
+        { ...board.cards[1], createdAt: '2026-07-13T11:00:00+09:00' },
+        { id: 'evidence-1', type: 'evidence', text: 'Earlier evidence', status: 'confirmed', tags: [], createdAt: '2026-07-13T10:00:00+09:00' },
+      ],
+    });
+
+    expect(createTimeline(organizedBoard.cards).map((card) => card.id)).toEqual(['want-1', 'evidence-1', 'unknown-1']);
   });
 });

@@ -6,6 +6,9 @@ const CARD_TYPES = new Set(["want", "unknown", "evidence", "assumption"]);
 const CARD_STATUSES = new Set(["candidate", "confirmed", "resolved", "rejected"]);
 const EDGE_KINDS = new Set(["depends_on", "blocks", "contradicts", "resolves"]);
 const PHASES = new Set(["opening", "clarifying", "challenging", "ready"]);
+const CARD_STAGES = new Set(["problem", "idea", "decision", "action"]);
+const TOPIC_SOURCES = new Set(["ai", "user"]);
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
 let saveQueue = Promise.resolve();
 
 export const DEFAULT_BOARD = {
@@ -67,6 +70,25 @@ function normalizeCard(value, index) {
   }
 
   const card = { id, type, text, status, tags: [...value.tags] };
+  if (value.topic !== undefined) card.topic = requireString(value.topic, `cards[${index}].topic`);
+  if (value.topicSource !== undefined) {
+    const topicSource = requireString(value.topicSource, `cards[${index}].topicSource`);
+    if (!TOPIC_SOURCES.has(topicSource)) fail(`cards[${index}].topicSource is invalid.`);
+    if (!card.topic) fail(`cards[${index}].topicSource requires topic.`);
+    card.topicSource = topicSource;
+  }
+  if (value.stage !== undefined) {
+    const stage = requireString(value.stage, `cards[${index}].stage`);
+    if (!CARD_STAGES.has(stage)) fail(`cards[${index}].stage is invalid.`);
+    card.stage = stage;
+  }
+  if (value.createdAt !== undefined) {
+    const createdAt = requireString(value.createdAt, `cards[${index}].createdAt`);
+    if (!ISO_TIMESTAMP.test(createdAt) || Number.isNaN(Date.parse(createdAt))) {
+      fail(`cards[${index}].createdAt is invalid.`);
+    }
+    card.createdAt = createdAt;
+  }
   if (type === "want") {
     if (value.polarity !== "include" && value.polarity !== "exclude") {
       fail(`cards[${index}].polarity must be include or exclude.`);
@@ -135,6 +157,24 @@ export function validateBoard(value) {
   }
 
   return { id, title, phase, cards, edges };
+}
+
+export function preserveUserTopics(currentBoard, nextBoard, overrideCardIds = []) {
+  if (!Array.isArray(nextBoard?.cards)) return nextBoard;
+  const protectedTopics = new Map();
+  const overrideIds = new Set(Array.isArray(overrideCardIds) ? overrideCardIds : []);
+  for (const card of currentBoard.cards) {
+    if (card.topicSource === "user" && !overrideIds.has(card.id)) {
+      protectedTopics.set(card.id, card.topic);
+    }
+  }
+  return {
+    ...nextBoard,
+    cards: nextBoard.cards.map((card) => {
+      const topic = protectedTopics.get(card?.id);
+      return topic ? { ...card, topic, topicSource: "user" } : card;
+    }),
+  };
 }
 
 export async function loadBoard(boardPath) {
