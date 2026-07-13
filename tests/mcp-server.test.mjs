@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -218,6 +218,28 @@ test("malformed JSON-RPC values do not terminate the MCP server", async (t) => {
 
   const pinged = await request("ping");
   assert.deepEqual(pinged.result, {});
+});
+
+test("local HTTP failures do not expose internal error details", async (t) => {
+  const dataRoot = await mkdtemp(path.join(os.tmpdir(), "thinkboard-http-error-"));
+  const port = await getFreePort();
+  const url = `http://127.0.0.1:${port}`;
+  const child = spawnServer(dataRoot, port);
+
+  t.after(async () => {
+    child.kill();
+    await rm(dataRoot, { recursive: true, force: true });
+  });
+
+  await waitForHealth(url);
+  await writeFile(path.join(dataRoot, "board.json"), "{ private-invalid-json", "utf8");
+
+  const response = await fetch(`${url}/api/board`);
+  const body = await response.json();
+  assert.equal(response.status, 400);
+  assert.deepEqual(body, { error: "Thinkboard could not complete the local request." });
+  assert.equal(JSON.stringify(body).includes(dataRoot), false);
+  assert.equal(JSON.stringify(body).includes("private-invalid-json"), false);
 });
 
 test("a standby MCP process restores the canvas after the web owner exits", async (t) => {

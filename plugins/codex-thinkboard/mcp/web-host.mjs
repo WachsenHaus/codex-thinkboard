@@ -132,8 +132,8 @@ export function createWebHost({
   }
 
   async function handleHttpRequest(request, response) {
-    const url = new URL(request.url || "/", boardUrl());
     try {
+      const url = new URL(request.url || "/", boardUrl());
       const requestHost = new URL(`http://${request.headers.host || "invalid"}`).hostname;
       if (!ALLOWED_HOSTS.has(requestHost)) {
         jsonResponse(response, 403, { error: "Thinkboard accepts loopback requests only." });
@@ -173,7 +173,9 @@ export function createWebHost({
       }
       await serveStatic(url.pathname, response);
     } catch (error) {
-      jsonResponse(response, 400, { error: error instanceof Error ? error.message : String(error) });
+      const detail = error instanceof Error ? error.message : String(error);
+      console.error(`[thinkboard] local HTTP request failed: ${detail}`);
+      jsonResponse(response, 400, { error: "Thinkboard could not complete the local request." });
     }
   }
 
