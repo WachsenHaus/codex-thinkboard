@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "thinkboard": {
+      "command": "node",
+      "args": ["./mcp/server.mjs"],
+      "cwd": ".",
+      "env_vars": [
+        "THINKBOARD_WEB_HOST",
+        "THINKBOARD_WEB_PORT",
+        "THINKBOARD_DATA_DIR"
+      ]
+    }
+  }
+}

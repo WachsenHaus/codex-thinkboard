@@ -1,14 +1,35 @@
 {
   "name": "codex-thinkboard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Open-source Codex plugin for guided visual sensemaking.",
   "license": "Apache-2.0",
+  "type": "module",
   "packageManager": "npm@10.9.2",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "check": "node scripts/check.mjs"
+    "build:web": "vite build --config plugins/codex-thinkboard/web/vite.config.ts",
+    "start": "node --env-file-if-exists=.env plugins/codex-thinkboard/mcp/server.mjs",
+    "typecheck": "tsc --noEmit -p plugins/codex-thinkboard/web/tsconfig.json",
+    "test": "vitest run plugins/codex-thinkboard/web/src && node --test tests/mcp-server.test.mjs",
+    "check": "npm run typecheck && npm run build:web && npm test && node scripts/check.mjs"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.101.2",
+    "@xyflow/react": "^12.11.2",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@types/node": "^26.1.1",
+    "@vitejs/plugin-react": "^6.0.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
   }
 }
