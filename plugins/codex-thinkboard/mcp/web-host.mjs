@@ -1,5 +1,6 @@
 import { createReadStream, watch } from "node:fs";
 import { stat } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import path from "node:path";
 
@@ -39,6 +40,7 @@ export function createWebHost({
   requestedPort,
 }) {
   const webHost = ALLOWED_HOSTS.has(requestedHost) ? requestedHost : "127.0.0.1";
+  const dataRootId = createHash("sha256").update(path.resolve(dataRoot)).digest("hex");
   const eventClients = new Set();
 
   let webServer;
@@ -145,6 +147,7 @@ export function createWebHost({
           version: manifestVersion,
           localOnly: true,
           boardUrl: boardUrl(),
+          dataRootId,
         });
         return;
       }
@@ -184,7 +187,7 @@ export function createWebHost({
       const response = await fetch(`${boardUrl()}/api/health`, { signal: AbortSignal.timeout(1200) });
       if (!response.ok) return false;
       const health = await response.json();
-      return health.name === "codex-thinkboard";
+      return health.name === "codex-thinkboard" && health.dataRootId === dataRootId;
     } catch {
       return false;
     }

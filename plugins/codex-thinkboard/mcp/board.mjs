@@ -1,10 +1,12 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 
 const CARD_TYPES = new Set(["want", "unknown", "evidence", "assumption"]);
 const CARD_STATUSES = new Set(["candidate", "confirmed", "resolved", "rejected"]);
 const EDGE_KINDS = new Set(["depends_on", "blocks", "contradicts", "resolves"]);
 const PHASES = new Set(["opening", "clarifying", "challenging", "ready"]);
+let saveQueue = Promise.resolve();
 
 export const DEFAULT_BOARD = {
   id: "welcome",
@@ -148,9 +150,13 @@ export async function loadBoard(boardPath) {
 
 export async function saveBoard(boardPath, value) {
   const board = validateBoard(value);
-  await mkdir(path.dirname(boardPath), { recursive: true });
-  const temporaryPath = `${boardPath}.${process.pid}.tmp`;
-  await writeFile(temporaryPath, `${JSON.stringify(board, null, 2)}\n`, "utf8");
-  await rename(temporaryPath, boardPath);
+  const save = saveQueue.then(async () => {
+    await mkdir(path.dirname(boardPath), { recursive: true });
+    const temporaryPath = `${boardPath}.${process.pid}.${randomUUID()}.tmp`;
+    await writeFile(temporaryPath, `${JSON.stringify(board, null, 2)}\n`, "utf8");
+    await rename(temporaryPath, boardPath);
+  });
+  saveQueue = save.catch(() => undefined);
+  await save;
   return board;
 }

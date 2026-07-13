@@ -150,7 +150,10 @@ test("bundled MCP server updates the local web board", async (t) => {
   const url = opened.result.structuredContent.boardUrl;
   const healthResponse = await fetch(`${url}/api/health`);
   assert.equal(healthResponse.status, 200);
-  assert.equal((await healthResponse.json()).localOnly, true);
+  const health = await healthResponse.json();
+  assert.equal(health.localOnly, true);
+  assert.match(health.dataRootId, /^[a-f0-9]{64}$/);
+  assert.equal(JSON.stringify(health).includes(dataRoot), false);
 
   const board = {
     id: "weight-goal",
@@ -242,6 +245,48 @@ test("local HTTP failures do not expose internal error details", async (t) => {
   assert.equal(JSON.stringify(body).includes("private-invalid-json"), false);
 });
 
+test("concurrent MCP updates use independent temporary files", async (t) => {
+  const dataRoot = await mkdtemp(path.join(os.tmpdir(), "thinkboard-concurrent-"));
+  const child = spawnServer(dataRoot, 0);
+  const { request } = createMcpClient(child);
+
+  t.after(async () => {
+    child.kill();
+    await rm(dataRoot, { recursive: true, force: true });
+  });
+
+  await request("initialize", {
+    protocolVersion: "2025-11-25",
+    capabilities: {},
+    clientInfo: { name: "thinkboard-concurrent-test", version: "1.0.0" },
+  });
+  const makeBoard = (id) => ({
+    id,
+    title: `Concurrent ${id}`,
+    phase: "clarifying",
+    cards: [
+      {
+        id: "want-1",
+        type: "want",
+        text: `Keep update ${id}`,
+        polarity: "include",
+        status: "confirmed",
+        tags: [],
+      },
+    ],
+    edges: [],
+  });
+
+  const results = await Promise.all([
+    request("tools/call", { name: "thinkboard_update_board", arguments: { board: makeBoard("alpha") } }),
+    request("tools/call", { name: "thinkboard_update_board", arguments: { board: makeBoard("beta") } }),
+  ]);
+  assert.equal(results.some((result) => result.result.isError), false, JSON.stringify(results));
+
+  const current = await request("tools/call", { name: "thinkboard_get_board", arguments: {} });
+  assert.ok(["alpha", "beta"].includes(current.result.structuredContent.board.id));
+});
+
 test("a standby MCP process restores the canvas after the web owner exits", async (t) => {
   const dataRoot = await mkdtemp(path.join(os.tmpdir(), "thinkboard-takeover-"));
   const port = await getFreePort();
@@ -264,6 +309,36 @@ test("a standby MCP process restores the canvas after the web owner exits", asyn
   await waitForHealth(url);
   const boardResponse = await fetch(`${url}/api/board`);
   assert.equal(boardResponse.status, 200);
+});
+
+test("a standby MCP process rejects a canvas for a different data root", async (t) => {
+  const ownerRoot = await mkdtemp(path.join(os.tmpdir(), "thinkboard-owner-root-"));
+  const standbyRoot = await mkdtemp(path.join(os.tmpdir(), "thinkboard-standby-root-"));
+  const port = await getFreePort();
+  const url = `http://127.0.0.1:${port}`;
+  const owner = spawnServer(ownerRoot, port);
+  let standby;
+
+  t.after(async () => {
+    owner.kill();
+    standby?.kill();
+    await Promise.all([
+      rm(ownerRoot, { recursive: true, force: true }),
+      rm(standbyRoot, { recursive: true, force: true }),
+    ]);
+  });
+
+  await waitForHealth(url);
+  standby = spawnServer(standbyRoot, port);
+  const { request } = createMcpClient(standby);
+  await request("initialize", {
+    protocolVersion: "2025-11-25",
+    capabilities: {},
+    clientInfo: { name: "thinkboard-data-root-test", version: "1.0.0" },
+  });
+
+  const opened = await request("tools/call", { name: "thinkboard_open_board", arguments: {} });
+  assert.equal(opened.result.structuredContent.webAvailable, false);
 });
 
 test("the web owner broadcasts board updates saved by a standby MCP process", async (t) => {
