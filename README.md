@@ -33,6 +33,8 @@ Thinkboard follows a guided-externalization loop:
 5. Contradictions become friendly follow-up questions.
 6. The session ends with a concrete outcome, ranked unknowns, and a next action.
 
+The local canvas opens in an AI-organized topic view. Each card can carry a `problem`, `idea`, `decision`, or `action` stage, while the same board remains available as a relationship graph or chronological timeline. Topics corrected by the user take priority over later AI regrouping.
+
 The intended balance is 60% guided dialogue, 30% direct board manipulation, and 10% detective-board atmosphere. See [Product principles](docs/PRODUCT.md).
 
 ## Install
@@ -89,6 +91,7 @@ scripts/check.mjs                       Structure and 1,000-line source validati
 - [x] Canonical board JSON and Markdown fallback
 - [x] Local MCP server with session storage
 - [x] React Flow canvas with spotlight and red-string interactions
+- [x] AI topic groups, thinking-stage badges, and timeline view
 - [ ] JSON and PNG export
 - [ ] GitHub Pages sample-board demo
 - [ ] Optional embedded Apps SDK UI where the host supports it

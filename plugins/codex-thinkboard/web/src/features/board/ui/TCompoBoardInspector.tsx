@@ -50,6 +50,24 @@ export const TCompoBoardInspector = ({
             <p className="inspector-card__text">{selectedCard.text}</p>
             <span className="inspector-card__label">{text.status}</span>
             <p className="inspector-card__value">{text.statuses[selectedCard.status]}</p>
+            {selectedCard.topic && (
+              <>
+                <span className="inspector-card__label">{text.topic}</span>
+                <p className="inspector-card__value">{selectedCard.topic}</p>
+              </>
+            )}
+            {selectedCard.stage && (
+              <>
+                <span className="inspector-card__label">{text.stage}</span>
+                <p className="inspector-card__value">{text.stages[selectedCard.stage]}</p>
+              </>
+            )}
+            {selectedCard.createdAt && (
+              <>
+                <span className="inspector-card__label">{text.createdAt}</span>
+                <p className="inspector-card__muted">{new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(selectedCard.createdAt))}</p>
+              </>
+            )}
             <span className="inspector-card__label">{text.relationships}</span>
             {relationships.length === 0 && (
               <p className="inspector-card__muted">{text.noRelationships}</p>

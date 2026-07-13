@@ -22,6 +22,7 @@ import {
   type BoardFlowEdge,
   type BoardLayoutMode,
   type BoardNode,
+  type BoardViewMode,
 } from '../service/serviceBoard';
 import type { Board, BoardConnectionStatus } from '../type/typesBoard';
 import { BOARD_TEXT, type UiLanguage } from '../service/serviceBoardLocale';
@@ -29,6 +30,7 @@ import { TCompoBoardCard } from './TCompoBoardCard';
 import { TCompoBoardHeader } from './TCompoBoardHeader';
 import { TCompoBoardInspector } from './TCompoBoardInspector';
 import { TCompoBoardString } from './TCompoBoardString';
+import { TCompoTimelineBoard, TCompoTopicBoard } from './TCompoBoardViews';
 
 type CompoBoardCanvasProps = {
   board: Board;
@@ -65,6 +67,7 @@ export const CompoBoardCanvas = ({
 }: CompoBoardCanvasProps) => {
   const text = BOARD_TEXT[language];
   const layoutMode = useBoardLayoutMode();
+  const [viewMode, setViewMode] = useState<BoardViewMode>('topics');
   const [showResolved, setShowResolved] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isInspectorExpanded, setIsInspectorExpanded] = useState(false);
@@ -108,7 +111,11 @@ export const CompoBoardCanvas = ({
   }, [isInspectorExpanded, layoutMode, selectedCardId]);
 
   const handleNodeClick = (_event: React.MouseEvent, node: Node): void => {
-    setSelectedCardId(node.id);
+    handleCardSelect(node.id);
+  };
+
+  const handleCardSelect = (cardId: string): void => {
+    setSelectedCardId(cardId);
     setIsInspectorExpanded(true);
   };
 
@@ -140,6 +147,18 @@ export const CompoBoardCanvas = ({
       <section className={`case-board__workspace ${isInspectorExpanded ? 'case-board__workspace--inspector-expanded' : ''}`}>
         <div className="case-board__canvas">
           <div className="case-board__canvas-toolbar">
+            <div className="case-board__view-switcher" aria-label={text.localCanvas}>
+              {(['topics', 'relationships', 'timeline'] as const).map((mode) => (
+                <button
+                  type="button"
+                  key={mode}
+                  aria-pressed={viewMode === mode}
+                  onClick={() => setViewMode(mode)}
+                >
+                  {text.views[mode]}
+                </button>
+              ))}
+            </div>
             {resolvedCardCount > 0 && (
               <button
                 type="button"
@@ -153,7 +172,7 @@ export const CompoBoardCanvas = ({
               </button>
             )}
           </div>
-          <div className="case-board__flow">
+          {viewMode === 'relationships' && <div className="case-board__flow">
             <ReactFlow
               key={layoutMode}
               nodes={nodes}
@@ -179,7 +198,23 @@ export const CompoBoardCanvas = ({
               <MiniMap pannable zoomable nodeColor="#6b4e3f" maskColor="rgba(10, 9, 8, 0.72)" />
               <Controls showInteractive={false} />
             </ReactFlow>
-          </div>
+          </div>}
+          {viewMode === 'topics' && (
+            <TCompoTopicBoard
+              cards={projection.visibleBoard.cards}
+              language={language}
+              selectedCardId={selectedCardId}
+              onSelect={handleCardSelect}
+            />
+          )}
+          {viewMode === 'timeline' && (
+            <TCompoTimelineBoard
+              cards={projection.visibleBoard.cards}
+              language={language}
+              selectedCardId={selectedCardId}
+              onSelect={handleCardSelect}
+            />
+          )}
         </div>
 
         <TCompoBoardInspector
